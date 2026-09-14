@@ -286,6 +286,34 @@
       margin-top: 56px; margin-bottom: 8px;
     }
 
+    /* 数字带：让"规模"有视觉重量，给长文区换气 */
+    .about-numbers {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      margin-top: 64px; padding: 44px 8px;
+      background: var(--wheat); border-radius: 20px;
+    }
+    .number-item {
+      text-align: center; padding: 0 10px;
+      border-right: 1px solid rgba(139,115,85,0.2);
+    }
+    .number-item:last-child { border-right: none; }
+    .number-value {
+      font-size: 56px; font-weight: 700; color: var(--earth);
+      line-height: 1; letter-spacing: -1.5px;
+    }
+    .number-value .unit {
+      font-size: 18px; font-weight: 600; margin-left: 3px; letter-spacing: 0;
+    }
+    .number-label {
+      font-size: 13px; color: #7a6a55; margin-top: 14px; line-height: 1.7;
+    }
+    .number-label .nb { white-space: nowrap; }
+    @media (max-width: 900px) {
+      .about-numbers { grid-template-columns: repeat(2, 1fr); gap: 36px 0; }
+      .number-item:nth-child(2) { border-right: none; }
+      .number-value { font-size: 44px; }
+    }
+
     /* Space features */
     .space-features {
       display: grid;
@@ -1398,7 +1426,7 @@
     .task-status {
       font-size: 12px; padding: 2px 10px; border-radius: 8px;
     }
-    .task-status.pending { background: var(--card-bg)3cd; color: #856404; }
+    .task-status.pending { background: #fff3cd; color: #856404; }
     .task-status.approved { background: #d4edda; color: #155724; }
     .task-status.rejected { background: #f8d7da; color: #721c24; }
 
@@ -1700,6 +1728,27 @@
         <h4>2023年 - 至今</h4>
         <p>麦田在郑州租赁实体空间，开始探索如何基于空间做教育，尤其是如何实现可持续的教育陪伴和服务。目前分为两个板块：1. 麦田学习社区 2. 乡小阅读空间。</p>
         <p style="margin-top:8px;">但23年后，运营就比较困难，麦田在教育设计和实践上有将近9年的经验，但在传播和营销上还处在前期阶段，所以我们目前也在努力让她活下去，作为一个我们认同也喜欢的教育组织，有能力可持续，有价值的生存下去。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="fade-up">
+    <div class="about-numbers">
+      <div class="number-item">
+        <div class="number-value">2017</div>
+        <div class="number-label">麦田教育成立</div>
+      </div>
+      <div class="number-item">
+        <div class="number-value">5<span class="unit">个</span></div>
+        <div class="number-label">内容系列<br><span class="nb">周末</span> · <span class="nb">周中</span> · <span class="nb">寒暑假</span> · <span class="nb">小假期</span> · <span class="nb">家庭</span></div>
+      </div>
+      <div class="number-item">
+        <div class="number-value">2<span class="unit">所</span></div>
+        <div class="number-label">乡村小学落地阅读空间<br>郑州西胡垌 · 安阳小田</div>
+      </div>
+      <div class="number-item">
+        <div class="number-value">7<span class="unit">只</span></div>
+        <div class="number-label">猫，住在空间里的猫屋</div>
       </div>
     </div>
   </div>
