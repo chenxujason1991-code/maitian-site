@@ -354,7 +354,6 @@
       margin-top: 32px;
       overflow-x: auto;
       overflow-y: hidden;
-      scroll-snap-type: x proximity;
       padding: 10px 4px 18px 4px;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: thin;
@@ -366,11 +365,11 @@
     }
     .series-grid::-webkit-scrollbar-track { background: transparent; }
     .series-card {
+      position: relative;
       flex: 0 0 38%;
-      scroll-snap-align: start;
       background: var(--card-bg);
       border-radius: 14px;
-      padding: 24px 20px;
+      padding: 24px 20px 66px 20px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.04);
       transition: transform 0.35s ease, box-shadow 0.35s ease;
     }
@@ -391,6 +390,69 @@
     .series-card li {
       font-size: 14px; color: var(--text-light); padding: 4px 0;
       line-height: 1.7;
+    }
+    /* 手法①：卡片右下角圆形「+」按钮 */
+    .series-card-plus {
+      position: absolute; right: 16px; bottom: 16px;
+      width: 40px; height: 40px; border: none; border-radius: 50%;
+      padding: 0; cursor: pointer;
+      background: var(--earth); color: #fff;
+      font-size: 22px; line-height: 1; font-weight: 300;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 12px rgba(139,115,85,0.28);
+      transition: transform 0.28s ease, background 0.28s ease;
+    }
+    .series-card-plus:hover {
+      background: var(--leaf);
+      transform: scale(1.12) rotate(90deg);
+    }
+    .series-card-plus:focus-visible {
+      outline: 2px solid var(--leaf); outline-offset: 3px;
+    }
+
+    /* ===== 系列详情弹窗 ===== */
+    .series-modal-hero { position: relative; margin: -28px -28px 22px; }
+    .series-modal-hero img {
+      display: block; width: 100%; height: 220px; object-fit: cover;
+      border-radius: 14px 14px 0 0;
+    }
+    .series-modal-hero h3 {
+      position: absolute; left: 0; right: 0; bottom: 0; margin: 0;
+      padding: 48px 24px 16px;
+      font-size: 22px; color: #fff; letter-spacing: 1px;
+      background: linear-gradient(transparent, rgba(61,61,61,0.74));
+    }
+    .series-modal-label {
+      font-size: 12px; letter-spacing: 2px; color: var(--earth);
+      font-weight: 700; margin-bottom: 10px;
+    }
+    .series-modal-item {
+      position: relative; font-size: 15px; color: var(--text);
+      line-height: 1.9; padding: 6px 0 6px 20px;
+    }
+    .series-modal-item::before {
+      content: ''; position: absolute; left: 4px; top: 15px;
+      width: 6px; height: 6px; border-radius: 50%; background: var(--leaf);
+    }
+    .series-modal-foot {
+      margin-top: 24px; padding-top: 20px;
+      border-top: 1px solid rgba(139,115,85,0.16);
+      text-align: center;
+    }
+    .series-modal-foot p {
+      font-size: 14px; color: var(--text-light); margin: 0 0 14px;
+    }
+    .series-modal-go {
+      display: inline-block; padding: 11px 26px;
+      border: none; border-radius: 999px; cursor: pointer;
+      background: var(--leaf); color: #fff;
+      font-size: 14px; letter-spacing: 1px;
+      transition: transform 0.25s ease, background 0.25s ease;
+    }
+    .series-modal-go:hover { background: var(--earth); transform: translateY(-2px); }
+    @media (max-width: 560px) {
+      .series-modal-hero { margin: -20px -16px 18px; }
+      .series-modal-hero img { height: 160px; }
     }
 
     /* Section banner image */
@@ -1820,6 +1882,7 @@
           <li>儿童议事厅</li>
           <li>城市行走系列</li>
         </ul>
+        <button class="series-card-plus" type="button" aria-label="查看周末系列包含的内容" onclick="openSeriesModal(this)">+</button>
       </div>
       <div class="series-card">
         <img class="series-card-img" src="images-web/feishu/series_weekday.jpg" alt="周中系列" loading="lazy">
@@ -1827,6 +1890,7 @@
         <ul>
           <li>Gap Days</li>
         </ul>
+        <button class="series-card-plus" type="button" aria-label="查看周中系列包含的内容" onclick="openSeriesModal(this)">+</button>
       </div>
       <div class="series-card">
         <img class="series-card-img" src="images-web/feishu/series_summer.jpg" alt="寒暑假系列" loading="lazy">
@@ -1835,6 +1899,7 @@
           <li>托管日间营</li>
           <li>城市游学营</li>
         </ul>
+        <button class="series-card-plus" type="button" aria-label="查看寒暑假系列包含的内容" onclick="openSeriesModal(this)">+</button>
       </div>
       <div class="series-card">
         <img class="series-card-img" src="images-web/feishu/series_holiday.jpg" alt="小假期系列" loading="lazy">
@@ -1843,6 +1908,7 @@
           <li>五一儿童节</li>
           <li>端午 / 十一 / 中秋</li>
         </ul>
+        <button class="series-card-plus" type="button" aria-label="查看小假期系列包含的内容" onclick="openSeriesModal(this)">+</button>
       </div>
       <div class="series-card">
         <img class="series-card-img" src="images-web/feishu/series_family.jpg" alt="家庭系列" loading="lazy">
@@ -1851,6 +1917,7 @@
           <li>四季家庭游</li>
           <li>家庭教育对话</li>
         </ul>
+        <button class="series-card-plus" type="button" aria-label="查看家庭系列包含的内容" onclick="openSeriesModal(this)">+</button>
       </div>
     </div>
   </div>
@@ -1920,6 +1987,14 @@
     <div class="museum-modal-header" id="feedModalHeader"></div>
     <div class="museum-modal-body" id="feedModalBody"></div>
     <button class="museum-modal-close" onclick="closeFeedModal()">关闭</button>
+  </div>
+</div>
+
+<!-- 系列详情弹窗（由卡片右下「+」按钮打开） -->
+<div class="museum-modal-overlay" id="seriesModal" onclick="closeSeriesModal(event)">
+  <div class="museum-modal">
+    <div class="museum-modal-body" id="seriesModalBody"></div>
+    <button class="museum-modal-close" onclick="closeSeriesModal()">关闭</button>
   </div>
 </div>
 
@@ -3048,6 +3123,69 @@
       currentStoryId = null;
     }
   }
+
+  // ============ 系列卡片：圆形「+」详情弹窗 ============
+  // 内容一律从卡片自身的 DOM 读取，不在 JS 里另存一份数据，
+  // 以后改卡片文案，弹窗自动跟着变。
+  function openSeriesModal(btn) {
+    var card = btn && btn.closest ? btn.closest('.series-card') : null;
+    if (!card) return;
+    var img = card.querySelector('.series-card-img');
+    var titleEl = card.querySelector('h4');
+    var title = titleEl ? titleEl.textContent.trim() : '系列';
+    var items = [];
+    var lis = card.querySelectorAll('li');
+    for (var i = 0; i < lis.length; i++) items.push(lis[i].textContent.trim());
+
+    var html =
+      (img ? '<div class="series-modal-hero">' +
+               '<img src="' + img.getAttribute('src') + '" alt="' + escHtml(title) + '">' +
+               '<h3>' + escHtml(title) + '</h3>' +
+             '</div>' : '') +
+      '<div class="series-modal-label">这个系列里有</div>' +
+      items.map(function(t) {
+        return '<div class="series-modal-item">' + escHtml(t) + '</div>';
+      }).join('') +
+      '<div class="series-modal-foot">' +
+        '<p>想看看这些活动里真实发生过的片段？</p>' +
+        '<button class="series-modal-go" type="button" onclick="seriesGoStories()">去看麦田的故事 →</button>' +
+      '</div>';
+
+    document.getElementById('seriesModalBody').innerHTML = html;
+    document.getElementById('seriesModal').classList.add('open');
+  }
+
+  function closeSeriesModal(e) {
+    if (!e || e.target === document.getElementById('seriesModal') || !e.target) {
+      document.getElementById('seriesModal').classList.remove('open');
+    }
+  }
+
+  function seriesGoStories() {
+    closeSeriesModal();
+    doNavTo('interact');
+    setTimeout(function() { switchTab('stories'); }, 500);
+  }
+
+  // ============ 桌面端：鼠标滚轮在系列卡上横向滑动 ============
+  (function() {
+    var grids = document.querySelectorAll('.series-grid');
+    for (var i = 0; i < grids.length; i++) {
+      (function(el) {
+        el.addEventListener('wheel', function(e) {
+          var max = el.scrollWidth - el.clientWidth;
+          if (max <= 0) return;                        // 没有溢出，不接管
+          var d = e.deltaY;
+          if (e.deltaMode === 1) d *= 16;              // 以「行」为单位 → 换算成像素
+          else if (e.deltaMode === 2) d *= el.clientHeight;
+          // 已经滑到两端，就交还给页面，让整页正常纵向滚动，避免"卡住"
+          if ((d < 0 && el.scrollLeft <= 0) || (d > 0 && el.scrollLeft >= max - 1)) return;
+          e.preventDefault();
+          el.scrollLeft += d;
+        }, { passive: false });
+      })(grids[i]);
+    }
+  })();
 
   function submitStoryComment() {
     var textarea = document.getElementById('storyCommentText');
