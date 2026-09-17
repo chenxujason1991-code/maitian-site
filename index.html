@@ -242,9 +242,15 @@
       border-radius: 16px;
       padding: 32px 28px;
       box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-      transition: transform 0.3s, box-shadow 0.3s;
+      transition: transform 0.35s ease, box-shadow 0.35s ease;
     }
-    .belief-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.08); }
+    /* 手法⑥：轻微倾斜错落。幅度比系列卡更收（这里是整段文字，不能晃） */
+    .belief-card:nth-child(odd)  { transform: rotate(-0.45deg); }
+    .belief-card:nth-child(even) { transform: rotate(0.45deg); }
+    .belief-card:hover {
+      transform: rotate(0deg) translateY(-4px);
+      box-shadow: 0 10px 26px rgba(139,115,85,0.14);
+    }
     .belief-card h4 {
       font-size: 15px; color: var(--leaf); font-weight: 700;
       margin-bottom: 12px; letter-spacing: 1px;
@@ -1092,9 +1098,21 @@
       .museum-modal-title { font-size: 18px; }
       .strategy-item { padding: 14px; }
 
-      /* 信念卡片 */
-      .belief-grid { grid-template-columns: 1fr; }
-      .belief-card { padding: 20px 16px; }
+      /* 信念卡片：小屏 4 张竖排会拖成一条长墙 → 改横滑 */
+      .belief-grid {
+        display: flex;
+        gap: 16px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 10px 4px 18px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(139,115,85,0.35) transparent;
+      }
+      .belief-card { flex: 0 0 84%; padding: 20px 16px; }
+      /* 小屏卡片已经很窄，取消倾斜免得更晃 */
+      .belief-card:nth-child(odd),
+      .belief-card:nth-child(even) { transform: none; }
     }
 
     /* 超小屏（iPhone SE 等 320px 宽） */
@@ -3167,9 +3185,10 @@
     setTimeout(function() { switchTab('stories'); }, 500);
   }
 
-  // ============ 桌面端：鼠标滚轮在系列卡上横向滑动 ============
+  // ============ 桌面端：鼠标滚轮在横滑卡片区横向滑动 ============
+  // 桌面端 .belief-grid 是网格、没有溢出，下面的 max<=0 判断会自动跳过。
   (function() {
-    var grids = document.querySelectorAll('.series-grid');
+    var grids = document.querySelectorAll('.series-grid, .belief-grid');
     for (var i = 0; i < grids.length; i++) {
       (function(el) {
         el.addEventListener('wheel', function(e) {
