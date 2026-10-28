@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="U7TTZPz9pKRqSjUBvslGoz">
+<head data-page-node-id="hoByqR38FQx8HcblAdOQNo">
+<meta charset="UTF-8" data-page-node-id="o2K4aCdK0xdiMSHX9v13cG">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" data-page-node-id="I5VQnZrzGSxWwrM9wX8wXB">
+<meta name="apple-mobile-web-app-capable" content="yes" data-page-node-id="iyvxyigNs38y5qwOl14WuC">
+<meta name="format-detection" content="telephone=no" data-page-node-id="G9FnCb0hMFMTolnGiKyWum">
+<title>小田阅读空间 · 记录</title>
+<style>
+  :root{
+    --paper:#f6f2eb; --brown:#8B7355; --brown-deep:#7A6548;
+    --leaf:#5B8C5A; --leaf-deep:#4d7d4c;
+    --ink:#3d3529; --ink-soft:#7d7365; --line:#e2dacd;
+    --warm:#c49450;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+  body{
+    font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",sans-serif;
+    background:var(--paper); color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    user-select:none; touch-action:manipulation;
+  }
+  button{font-family:inherit;cursor:pointer;border:none;background:none}
+  .hidden{display:none!important}
+
+  /* ============ 选人层 ============ */
+  .layer{position:fixed;inset:0;z-index:50;background:var(--paper);display:flex;
+    flex-direction:column;align-items:center;justify-content:center;padding:40px}
+  .who-wrap{width:100%;max-width:900px;text-align:center}
+  .who-wrap h1{font-size:34px;font-weight:600;color:var(--brown-deep);letter-spacing:.04em}
+  .who-wrap .who-sub{margin-top:12px;font-size:17px;color:var(--ink-soft)}
+  .people{display:flex;flex-wrap:wrap;gap:26px;justify-content:center;margin-top:52px}
+  .person{display:flex;flex-direction:column;align-items:center;gap:12px;width:118px}
+  .person .av{width:104px;height:104px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-size:38px;font-weight:600;color:#fff;
+    border:4px solid transparent;transition:transform .16s,border-color .16s}
+  .person .nm{font-size:16px;color:var(--ink-soft)}
+  .person:active .av{transform:scale(.94)}
+  .person .av.c0{background:#c8a882}.person .av.c1{background:#a8b58f}
+  .person .av.c2{background:#b9a3a0}.person .av.c3{background:#9aa9b5}
+  .person .av.c4{background:#c0a1a8}.person .av.c5{background:#a3b8ae}
+  .person.add .av{background:rgba(139,115,85,.09);border:3px dashed #cfc4b0;
+    color:var(--brown);font-size:40px;font-weight:300}
+
+  /* ============ 主屏 ============ */
+  .screen{position:fixed;inset:0;display:flex;flex-direction:column}
+  header{height:72px;flex:none;display:flex;align-items:center;justify-content:space-between;
+    padding:0 32px;border-bottom:1px solid var(--line)}
+  .h-left{display:flex;align-items:center;gap:11px}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--leaf)}
+  .place{font-size:19px;font-weight:600;color:var(--brown-deep)}
+  .h-right{display:flex;align-items:center;gap:18px}
+  .me-chip{display:flex;align-items:center;gap:9px;padding:7px 16px 7px 7px;
+    border-radius:30px;background:rgba(139,115,85,.08);font-size:15px;color:var(--brown-deep)}
+  .me-chip .mini{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;color:#fff;font-size:15px;font-weight:600}
+  .ghost{padding:11px 20px;border-radius:11px;font-size:15px;color:var(--brown-deep);
+    border:1.5px solid var(--line);background:#fff}
+  .ghost:active{background:#f0ebe1}
+
+  .work{flex:1;display:flex;gap:26px;padding:26px 32px 0;min-height:0}
+
+  /* 图区 */
+  .shot-area{flex:1;min-width:0;display:flex;flex-direction:column}
+  .slot{flex:1;border-radius:18px;border:2px dashed #cfc4b0;background:rgba(255,255,255,.5);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+    transition:border-color .18s,background .18s; position:relative; overflow:hidden}
+  .slot.has-img{border-style:solid;border-color:transparent;background:#e8e2d7}
+  .slot .cam{width:64px;height:64px;stroke:var(--brown);fill:none;stroke-width:1.5;
+    stroke-linecap:round;stroke-linejoin:round}
+  .slot .big{font-size:22px;color:var(--brown-deep);font-weight:500}
+  .slot .sub{font-size:15px;color:var(--ink-soft)}
+  .slot .fill{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .slot .more{position:absolute;right:14px;bottom:14px;padding:6px 13px;border-radius:20px;
+    background:rgba(0,0,0,.55);color:#fff;font-size:13px}
+  .thumbs{display:flex;gap:10px;margin-top:12px;height:0;overflow:hidden;transition:height .2s}
+  .thumbs.on{height:64px}
+  .thumbs img{width:64px;height:64px;object-fit:cover;border-radius:9px;border:2px solid #fff;
+    box-shadow:0 2px 8px rgba(90,75,55,.15)}
+  .add-tile{width:64px;height:64px;border-radius:9px;border:2px dashed #cfc4b0;
+    background:rgba(255,255,255,.6);color:var(--brown);font-size:26px;font-weight:300;
+    display:flex;align-items:center;justify-content:center}
+
+  /* 右栏 */
+  .panel{width:392px;flex:none;display:flex;flex-direction:column;gap:0}
+  .label{font-size:15px;color:var(--ink-soft);margin-bottom:10px}
+  .words{width:100%;border:1.5px solid var(--line);border-radius:14px;padding:16px 16px;
+    font-size:19px;line-height:1.6;font-family:inherit;color:var(--ink);resize:none;
+    height:104px;background:#fff;user-select:text}
+  .words:focus{outline:none;border-color:var(--leaf)}
+  .words::placeholder{color:#b9b0a1}
+
+  .notice{display:flex;align-items:flex-start;gap:9px;margin-top:14px;padding:11px 14px;
+    border-radius:11px;background:rgba(91,140,90,.09);font-size:14px;line-height:1.65;color:#4a6b49}
+  .notice svg{width:16px;height:16px;stroke:var(--leaf);fill:none;stroke-width:1.8;flex:none;margin-top:2px}
+
+  .seg{display:flex;gap:9px}
+  .seg button{flex:1;padding:13px 4px;border-radius:12px;border:1.5px solid var(--line);
+    background:#fff;font-size:15px;color:var(--ink-soft);transition:all .16s;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .seg button.on{border-color:var(--leaf);background:rgba(91,140,90,.08);color:#3f6b3e;font-weight:600}
+  .sign-tip{margin-top:9px;font-size:13px;color:#a49a89;line-height:1.55;min-height:20px}
+  .space-stat{margin-top:auto;padding-top:16px;font-size:14px;color:#a49a89;
+    border-top:1px dashed var(--line)}
+  .space-stat b{color:var(--brown-deep);font-weight:600;font-size:16px}
+
+  /* 底栏 */
+  footer{flex:none;padding:20px 32px 26px;display:flex;align-items:center;gap:20px}
+  .publish{flex:1;height:68px;border-radius:16px;background:var(--leaf);color:#fff;
+    font-size:23px;font-weight:600;letter-spacing:.14em;
+    box-shadow:0 5px 16px rgba(91,140,90,.3);transition:all .16s}
+  .publish:active{background:var(--leaf-deep);transform:translateY(1px);box-shadow:0 3px 10px rgba(91,140,90,.3)}
+  .publish:disabled{background:#c6c1b6;box-shadow:none;letter-spacing:.1em}
+  .hint{width:176px;flex:none;font-size:13px;color:#a49a89;line-height:1.6}
+
+  /* ============ 空间里的事 ============ */
+  .stream-head{height:76px;flex:none;display:flex;align-items:center;justify-content:space-between;
+    padding:0 32px;border-bottom:1px solid var(--line)}
+  .stream-head h2{font-size:22px;font-weight:600;color:var(--brown-deep)}
+  .stream-note{padding:16px 32px 0;font-size:14px;color:#8a8172;line-height:1.6}
+  .stream-note b{color:var(--brown-deep);font-weight:600;font-size:17px;
+    font-family:Georgia,"Songti SC",serif;padding:0 2px}
+  .cards{flex:1;display:flex;gap:20px;padding:26px 32px;overflow-x:auto;overflow-y:hidden;
+    align-items:stretch;-webkit-overflow-scrolling:touch}
+  .card{flex:none;width:300px;height:100%;display:flex;flex-direction:column;
+    background:#fff;border-radius:16px;overflow:hidden;border:1px solid #eae4d9;
+    box-shadow:0 3px 12px rgba(90,75,55,.07);position:relative}
+  .card .img{height:auto;flex:1;min-height:150px;background:#eee7db;position:relative;overflow:hidden}
+  .card .img img{width:100%;height:100%;object-fit:cover}
+  .card .msg{padding:13px 15px 15px;flex:none;display:flex;flex-direction:column;gap:8px}
+  .card .msg .t{font-size:16px;line-height:1.55;color:var(--ink);
+    display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+  .card .msg .meta{font-size:12.5px;color:#a49a89;display:flex;justify-content:space-between;gap:8px}
+  .echoes{display:flex;flex-direction:column;gap:7px;margin-top:2px;padding-top:9px;
+    border-top:1px dashed #eee7db}
+  .echo{font-size:13.5px;line-height:1.55;color:#6f6759;background:rgba(196,148,80,.07);
+    border-radius:9px;padding:8px 11px}
+  .echo .who{color:#a07c47;font-weight:600}
+  .reply-open{margin-top:6px;align-self:flex-start;font-size:13px;color:#8a7f6e;
+    padding:5px 0;border-bottom:1px dashed #d9cfbe}
+  .reply-box{display:none;margin-top:6px;gap:8px}
+  .reply-box.on{display:flex}
+  .reply-box input{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:10px;
+    padding:10px 12px;font-size:15px;font-family:inherit;color:var(--ink);background:#fff;
+    user-select:text}
+  .reply-box input:focus{outline:none;border-color:var(--leaf)}
+  .reply-box button{flex:none;padding:0 16px;border-radius:10px;background:var(--leaf);
+    color:#fff;font-size:14px;font-weight:600}
+  .card .del{position:absolute;top:9px;right:9px;width:34px;height:34px;border-radius:50%;
+    background:rgba(0,0,0,.45);color:#fff;font-size:19px;line-height:1;display:flex;
+    align-items:center;justify-content:center}
+  .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:12px;color:#a49a89;font-size:17px}
+
+  /* ============ 发出去了 ============ */
+  .done-wrap{text-align:center;animation:pop .3s ease-out}
+  @keyframes pop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+  .done-wrap .tick{width:92px;height:92px;border-radius:50%;background:rgba(91,140,90,.12);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 26px}
+  .done-wrap .tick svg{width:46px;height:46px;stroke:var(--leaf);fill:none;stroke-width:2.6;
+    stroke-linecap:round;stroke-linejoin:round}
+  .done-wrap h2{font-size:30px;font-weight:600;color:var(--brown-deep)}
+  .done-wrap p{margin-top:14px;font-size:17px;color:var(--ink-soft);line-height:1.7}
+  .done-wrap .acts{display:flex;gap:14px;justify-content:center;margin-top:38px}
+  .done-wrap .acts button{height:62px;padding:0 38px;border-radius:14px;font-size:18px}
+  .btn-solid{background:var(--leaf);color:#fff;font-weight:600;
+    box-shadow:0 4px 14px rgba(91,140,90,.28)}
+  .btn-ghost{border:1.5px solid var(--line);background:#fff;color:var(--brown-deep)}
+
+  /* 竖屏兜底 */
+  @media (max-aspect-ratio:1/1){
+    .work{flex-direction:column;gap:16px}
+    .panel{width:100%}
+    .slot{min-height:200px}
+    .words{height:78px;font-size:18px}
+    footer{padding:14px 20px 18px}
+    .publish{height:60px;font-size:20px}
+    .hint{display:none}
+  }
+</style>
+</head>
+<body data-page-node-id="VGUmwB6HL8H82UH7itNRTA">
+
+<!-- ================= 谁在记录 ================= -->
+<section id="who" class="layer" data-page-node-id="XXLMLhrHO2EHcUnBHzt4U3">
+  <div class="who-wrap" data-page-node-id="0s5jkIVQRegvUlVUSYgFAt">
+    <h1 data-page-node-id="tQYyHoXoc4HFBK6oK0F50E">今天谁在记录？</h1>
+    <div class="who-sub" data-page-node-id="NJcFlz6tFSwoloRgXVezaa">点一下自己的名字，不用登录</div>
+    <div class="people" id="peopleList" data-page-node-id="SPeAONnMQxbBuf4VrCIZ2u"></div>
+  </div>
+</section>
+
+<!-- ================= 发布 ================= -->
+<section id="main" class="screen hidden" data-page-node-id="T3reAx5En7lM9tvz6aZPjW">
+  <header data-page-node-id="cc3AvSkvF4PVsMrlN4GNsb">
+    <div class="h-left" data-page-node-id="bfCnsxg8OyckV1ClaYkHd9">
+      <span class="dot" data-page-node-id="oLkEjs2K6Zv7rzI4rcSQWP"></span>
+      <span class="place" data-page-node-id="H0v2UdNSnDS5bcPN7Jumi9">滑县大寨乡小田小学 · 阅读空间</span>
+    </div>
+    <div class="h-right" data-page-node-id="IWYBSg8KS7hXXWnF12vsXX">
+      <button class="ghost" id="btnStream" onclick="openStream()" data-page-node-id="dcMm0PoFNpIhxvtdeHgbHF">空间里的事</button>
+      <button class="me-chip" onclick="switchPerson()" data-page-node-id="DeMy3Yx8hJyy6h19G9R5vA">
+        <span class="mini" id="meMini" data-page-node-id="CFLreDlKkoz0SAusubiFqz">?</span>
+        <span id="meName" data-page-node-id="W0nHN7Bk4aDyxnA2uSxGm2">换人</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="work" data-page-node-id="YiC3nwO5onQLEz9faPe2xT">
+    <div class="shot-area" data-page-node-id="yyPByvoyxY56QGWK1YO0lK">
+      <div class="slot" id="slot" data-page-node-id="gB7ex25EFnQt7OfZhFiQrN">
+        <svg class="cam" viewBox="0 0 24 24" data-page-node-id="8PG9o5VQii90tLxmfSP3fI">
+          <path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.7a1 1 0 0 0 .83-.45l.94-1.4A1 1 0 0 1 9.8 3.7h4.4a1 1 0 0 1 .83.45l.94 1.4a1 1 0 0 0 .83.45h1.7A2.5 2.5 0 0 1 21 8.5v8A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z" data-page-node-id="38JizhmTAexIcJQhxMKtHR"/>
+          <circle cx="12" cy="12.3" r="3.4" data-page-node-id="l10JOAv8oMkfd1hSnN3j0w"/>
+        </svg>
+        <div class="big" data-page-node-id="Ga2KlyL4mLvo7ahrQaSWSJ">拍一张</div>
+        <div class="sub" data-page-node-id="L5uDZXsAGCPyLwzDE3hBFt">也可以从相册里选</div>
+      </div>
+      <div class="thumbs" id="thumbs" data-page-node-id="Nth5PWPjKjFcuhJ9lsdQsa"></div>
+    </div>
+
+    <aside class="panel" data-page-node-id="c7L9B6e13RIIlnCF9Iz24t">
+      <div class="label" data-page-node-id="lv1IJOJGT4rH3pPURRCkJY">说一句话（不想写就空着）</div>
+      <textarea class="words" id="words" placeholder="今天……"></textarea>
+
+      <div class="notice" data-page-node-id="qPJrjNalP3XbykwPL7EoVE">
+        <svg viewBox="0 0 24 24" data-page-node-id="uc1Abc4AMB0cRYdDHiBxTF"><circle cx="12" cy="12" r="9" data-page-node-id="eLEytDaYCVzF2aRiADDJwr"/><path d="M12 7.8v.02M11.9 11.2v5" data-page-node-id="mhfMIgEHInmN0qcmzMOF05"/></svg>
+        <span data-page-node-id="SCgMNpjtJyTxpKPRzTfJCH">这条会出现在麦田网站上，关心小田的人都会看到。</span>
+      </div>
+
+      <div class="label" style="margin-top:18px;" data-page-node-id="qYkyOdkXEgh41pueZEKFui">署名怎么写？</div>
+      <div class="seg" id="signSeg" data-page-node-id="EABdE8v1t4bfl2CgHPwRHR">
+        <button data-sign="me" onclick="setSign('me')" id="signMe" data-page-node-id="d2nbd14oJGoi7S9GvMkXxT">我</button>
+        <button data-sign="space" class="on" onclick="setSign('space')" id="signSpace" data-page-node-id="3ci5Jvwyt8BPxaqBEwlunh">读者</button>
+        <button data-sign="none" onclick="setSign('none')" data-page-node-id="1kN2jDJH8hScVmtxam7nqT">不署名</button>
+      </div>
+      <div class="sign-tip" id="signTip" data-page-node-id="Orz43hsUpT88uAydaA0aeC">网站上不写全名，看到的是「小田的读者」。</div>
+      <div class="space-stat" id="spaceStat" data-page-node-id="RsYm8oEEdM3pNuPnK0D1Sj"></div>
+    </aside>
+  </div>
+
+  <footer data-page-node-id="oc8WuouEgzuuJGbpNyus78">
+    <button class="publish" id="btnPublish" onclick="doPublish()" data-page-node-id="j8AEiHziRLZq2raldzA9BN">发 布</button>
+    <div class="hint" id="hint" data-page-node-id="Uo8C4B2WOgfKNrkHWiJ0Uj">加上一张照片就可以发了</div>
+  </footer>
+</section>
+
+<!-- ================= 空间里的事 ================= -->
+<section id="stream" class="screen hidden" data-page-node-id="HFFLX2ZSofnzDvPZXiMcKC">
+  <div class="stream-head" data-page-node-id="3HE8V4a7bXjBgbyGNCJMzh">
+    <h2 data-page-node-id="MDVD7ACuhEB7MxU5131tYL">空间里的事</h2>
+    <div style="display:flex;gap:14px;align-items:center" data-page-node-id="AfRalYELkuvhY0aNvD9Z8E">
+      <span style="font-size:14px;color:#a49a89" id="streamCount" data-page-node-id="vRhFAjRw3gJ5V8CoN3KflP"></span>
+      <button class="ghost" onclick="closeStream()" data-page-node-id="kgtjjzPb6LJ06E84DeEhDe">回去记录</button>
+    </div>
+  </div>
+  <div class="stream-note" id="streamNote" data-page-node-id="QNmhkZakiIB4DAQqfs4Aog"></div>
+  <div class="cards" id="cards" data-page-node-id="8S3spIOFlBaZqpZnDsvu5v"></div>
+</section>
+
+<!-- ================= 发出去了 ================= -->
+<section id="done" class="layer hidden" data-page-node-id="Bujd0VoGzfpmNEz7SyjUSQ">
+  <div class="done-wrap" data-page-node-id="H5F8OhzTH0q04MIfEiY0oP">
+    <div class="tick" data-page-node-id="CjzJG8uF3GBv4r0CmAAtQW">
+      <svg viewBox="0 0 24 24" data-page-node-id="c6cERYLdWlMc40KCKIbDUg"><path d="M4.5 12.8l4.6 4.6L19.5 7" data-page-node-id="zoRgNhXCwJm0RMqdvsXxcK"/></svg>
+    </div>
+    <h2 data-page-node-id="FvL92vkJUu6rQpyIcrEuND">发出去了</h2>
+    <p id="doneMsg" data-page-node-id="JLvmhgeIT1RDpcChyk17rq">这条已经记在空间里。</p>
+    <div class="acts" data-page-node-id="8EVQVQaTtF4ybKa4FHSegL">
+      <button class="btn-solid" onclick="again()" data-page-node-id="CtcJJA8gPzISqPLVnTDBcw">再发一条</button>
+      <button class="btn-ghost" onclick="openStream()" data-page-node-id="1c040A2fJBTdiz5h5VRgG6">看看空间里的事</button>
+    </div>
+  </div>
+</section>
+
+<!-- 隐藏的文件选择 -->
+<input type="file" id="fileCam" accept="image/*" capture="environment" style="display:none" data-page-node-id="cOumJE6F6D54HshtgDSA2u">
+<input type="file" id="filePick" accept="image/*" style="display:none" data-page-node-id="3FpgkDfUNVSEKHQJKBSVU5">
+
+<script src="maitian-space-sync.js"></script>
+<script>
+/* =========================================================
+   小田阅读空间 · pad 端记录页
+   数据先写云端（Supabase），连不上就留在这台 pad 上。
+   两边都能用，界面上不弹错误——网络好坏不该变成孩子的负担。
+   ========================================================= */
+
+var SPACE_KEY  = 'mt_space_posts_v1';
+var PEOPLE_KEY = 'mt_space_people_v1';
+var SPACE_NAME = '小田';              // 换成学校名会体现在署名上
+
+var cloudPosts = null;   // null = 还没连上（读本地）；数组 = 云端数据为准
+var cloudOn    = false;  // 探活结果
+
+var signMode = 'space';
+var me = null;
+var shots = [];          // 本次要发布的图
+var mySessionIds = [];   // 本机本次打开里发的，允许自己撤
+
+/* ---------- 名单 ---------- */
+function loadPeople() {
+  var p = null;
+  try { p = JSON.parse(localStorage.getItem(PEOPLE_KEY)); } catch (e) {}
+  if (!p || !p.length) {
+    p = [{ n: '小美' }, { n: '阿哲' }, { n: '王老师' }];
+    localStorage.setItem(PEOPLE_KEY, JSON.stringify(p));
+  }
+  return p;
+}
+
+function renderPeople() {
+  var list = loadPeople();
+  var box = document.getElementById('peopleList');
+  box.innerHTML = list.map(function (p, i) {
+    return '<div class="person" onclick="choosePerson(' + i + ')">' +
+      '<div class="av c' + (i % 6) + '">' + esc(avatarChar(p.n)) + '</div>' +
+      '<div class="nm">' + esc(p.n) + '</div></div>';
+  }).join('') +
+  '<div class="person add" onclick="addPerson()">' +
+  '<div class="av">+</div><div class="nm">加一个人</div></div>';
+}
+
+function addPerson() {
+  var n = prompt('新来的人叫什么？（写小名就行，不用写姓）');
+  if (!n) return;
+  n = n.trim().slice(0, 8);
+  if (!n) return;
+  var list = loadPeople();
+  list.push({ n: n });
+  localStorage.setItem(PEOPLE_KEY, JSON.stringify(list));
+  renderPeople();
+}
+
+function choosePerson(i) {
+  var list = loadPeople();
+  if (!list[i]) return;
+  me = list[i].n;
+  enterMain();
+}
+
+function switchPerson() {
+  me = null;
+  document.getElementById('who').classList.remove('hidden');
+  document.getElementById('main').classList.add('hidden');
+  closeStream(true);
+}
+
+function enterMain() {
+  document.getElementById('who').classList.add('hidden');
+  document.getElementById('done').classList.add('hidden');
+  document.getElementById('stream').classList.add('hidden');
+  document.getElementById('main').classList.remove('hidden');
+
+  document.getElementById('meName').textContent = me;
+  var mini = document.getElementById('meMini');
+  mini.textContent = avatarChar(me);
+  mini.style.background = avatarColor(me);
+
+  // 署名按钮跟着换人更新
+  document.getElementById('signMe').textContent = me;
+  document.getElementById('signSpace').textContent = SPACE_NAME + '的读者';
+  setSign(signMode);
+  updateStat();
+}
+
+function updateStat() {
+  var n = loadPosts().length;
+  document.getElementById('spaceStat').innerHTML = n
+    ? '这个空间里已经记了 <b>' + n + '</b> 条'
+    : '这个空间里还没有记录，第一条可以是你的';
+}
+
+/* ---------- 选图 ---------- */
+document.getElementById('fileCam').addEventListener('change', onFile);
+document.getElementById('filePick').addEventListener('change', onFile);
+
+function onFile(e) {
+  var f = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  var r = new FileReader();
+  r.onload = function (ev) {
+    var img = new Image();
+    img.onload = function () {
+      var maxW = 1200, w = img.width, h = img.height;
+      if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      var c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      shots.push(c.toDataURL('image/jpeg', 0.78));
+      renderShots();
+    };
+    img.src = ev.target.result;
+  };
+  r.readAsDataURL(f);
+}
+
+function renderShots() {
+  var slot = document.getElementById('slot');
+  var thumbs = document.getElementById('thumbs');
+
+  if (!shots.length) {
+    slot.className = 'slot';
+    slot.innerHTML =
+      '<svg class="cam" viewBox="0 0 24 24">' +
+      '<path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.7a1 1 0 0 0 .83-.45l.94-1.4A1 1 0 0 1 9.8 3.7h4.4a1 1 0 0 1 .83.45l.94 1.4a1 1 0 0 0 .83.45h1.7A2.5 2.5 0 0 1 21 8.5v8A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z"/>' +
+      '<circle cx="12" cy="12.3" r="3.4"/></svg>' +
+      '<div class="big">拍一张</div><div class="sub">也可以从相册里选</div>';
+    thumbs.className = 'thumbs';
+    thumbs.innerHTML = '';
+    document.getElementById('btnPublish').disabled = true;
+    document.getElementById('hint').textContent = '加上一张照片就可以发了';
+    return;
+  }
+
+  slot.className = 'slot has-img';
+  slot.innerHTML = '<img class="fill" src="' + shots[0] + '">' +
+    (shots.length > 1 ? '<div class="more">共 ' + shots.length + ' 张</div>' : '');
+
+  thumbs.className = 'thumbs on';
+  thumbs.innerHTML = shots.map(function (s, i) {
+    return '<img src="' + s + '" onclick="event.stopPropagation();removeShot(' + i + ')">';
+  }).join('') +
+  '<button class="add-tile" onclick="event.stopPropagation();document.getElementById(\'fileCam\').click()">+</button>';
+
+  document.getElementById('btnPublish').disabled = false;
+  document.getElementById('hint').textContent = '发出去之后，空间里就看到了';
+}
+
+function removeShot(i) {
+  shots.splice(i, 1);
+  renderShots();
+}
+
+/* 点图区：没图时从相册选（选择器里也能直接拍）；已有图时点缩略图上的 + 再加 */
+document.getElementById('slot').addEventListener('click', function () {
+  if (!shots.length) document.getElementById('filePick').click();
+});
+document.getElementById('slot').addEventListener('contextmenu', function (e) {
+  e.preventDefault();
+  document.getElementById('fileCam').click();
+});
+
+/* ---------- 署名 ---------- */
+var signTips = {
+  me: '写你自己想的名字就行，别写全名。',
+  space: '网站上不写全名，看到的是「小田的读者」。',
+  none: '网站上只有阅读空间和日期，没有署名。'
+};
+function setSign(which) {
+  signMode = which;
+  document.querySelectorAll('#signSeg button').forEach(function (b) {
+    b.classList.toggle('on', b.dataset.sign === which);
+  });
+  var tip = signTips[which] || '';
+  if (which === 'space') tip = '网站上不写全名，看到的是「' + SPACE_NAME + '的读者」。';
+  document.getElementById('signTip').textContent = tip;
+}
+
+/* ---------- 发布 ---------- */
+function doPublish() {
+  if (!shots.length || !me) return;
+  var btn = document.getElementById('btnPublish');
+  if (btn.disabled) return;
+
+  var post = {
+    id: 'local-' + Date.now(),
+    space: '小田阅读空间',
+    author: me,                       // 空间里知道是谁写的
+    signMode: signMode,               // 网站上怎么署名
+    signLabel: signMode === 'me' ? me
+             : signMode === 'space' ? SPACE_NAME + '的读者'
+             : '',
+    text: document.getElementById('words').value.trim(),
+    images: shots.slice(),
+    time: new Date().toISOString(),
+    replies: []
+  };
+
+  // 先让它落进空间里，不让人对着按钮等
+  var all = loadPosts();
+  all.unshift(post);
+  savePosts(all);
+  mySessionIds.push(post.id);
+  cacheLocal(post);
+
+  // 发完清场
+  shots = [];
+  document.getElementById('words').value = '';
+  renderShots();
+
+  document.getElementById('main').classList.add('hidden');
+  document.getElementById('done').classList.remove('hidden');
+  setDoneMsg(post, window.MTSpace ? 'sending' : 'local');
+
+  // 不看探测结果，直接试着发。
+  // 探测可能还没回来，错过了这条就永远上不去——宁可多试一次。
+  if (!window.MTSpace) return;
+
+  window.MTSpace.publish(post).then(function (saved) {
+    if (!saved) { setDoneMsg(post, 'local'); return; }
+
+    // 云端给了真实 id，把本地那条换掉
+    var i = mySessionIds.indexOf(post.id);
+    if (i >= 0) mySessionIds[i] = saved.id;
+    if (cloudPosts) {
+      for (var k = 0; k < cloudPosts.length; k++) {
+        if (cloudPosts[k].id === post.id) { cloudPosts[k] = saved; break; }
+      }
+    }
+    post.id = saved.id;
+    setDoneMsg(post, 'cloud');
+  });
+}
+
+/* 发完之后那句提示：说实话，别让人以为都上网站了 */
+function setDoneMsg(post, state) {
+  var who = post.signLabel
+    ? '网站上会看到「' + esc(post.signLabel) + '」。'
+    : '网站上这条不署名。';
+
+  var msg;
+  if (state === 'sending') {
+    msg = '正在放到空间里……';
+  } else if (state === 'cloud') {
+    msg = '这条已经在空间里了，网站上马上能看到。' + who;
+  } else {
+    msg = '这条记在这台 pad 上了，但它还没到网站——现在网络不通。' + who;
+  }
+  document.getElementById('doneMsg').innerHTML = msg;
+}
+
+function again() {
+  document.getElementById('done').classList.add('hidden');
+  document.getElementById('main').classList.remove('hidden');
+  updateStat();
+}
+
+/* ---------- 存读 ---------- */
+/* 连上了云端就以云端为准；没连上读本地。
+   本地那份不清空——网络断了它还能撑住一片。 */
+function loadPosts() {
+  if (cloudPosts) return cloudPosts;
+  try { return JSON.parse(localStorage.getItem(SPACE_KEY)) || []; }
+  catch (e) { return []; }
+}
+function savePosts(list) {
+  if (cloudPosts) { cloudPosts = list; return; }
+  // 图片存本地，pad 上几十条就会顶到浏览器上限。满了就少存几条，不要崩。
+  try {
+    localStorage.setItem(SPACE_KEY, JSON.stringify(list));
+  } catch (e) {
+    try { localStorage.setItem(SPACE_KEY, JSON.stringify(list.slice(0, 10))); } catch (e2) {}
+  }
+}
+/* 不管哪种模式，本地都留一份。换设备看不到，但这台不会空。 */
+function cacheLocal(post) {
+  try {
+    var l = JSON.parse(localStorage.getItem(SPACE_KEY)) || [];
+    l.unshift(post);
+    localStorage.setItem(SPACE_KEY, JSON.stringify(l.slice(0, 40)));
+  } catch (e) {}
+}
+
+/* ---------- 空间里的事 ---------- */
+function openStream() {
+  document.getElementById('done').classList.add('hidden');
+  document.getElementById('main').classList.add('hidden');
+  document.getElementById('stream').classList.remove('hidden');
+  renderStream();
+  refreshStream();
+}
+function closeStream(silent) {
+  document.getElementById('stream').classList.add('hidden');
+  if (!silent && me) document.getElementById('main').classList.remove('hidden');
+  else if (!silent) document.getElementById('who').classList.remove('hidden');
+}
+
+function renderStream() {
+  var list = loadPosts();
+  var box = document.getElementById('cards');
+  var sc = box.scrollLeft;
+
+  document.getElementById('streamCount').textContent =
+    list.length ? '一共 ' + list.length + ' 条' : '';
+
+  // 数字只放在空间这一层，不落到单条记录上
+  var who = {};
+  list.forEach(function (p) {
+    (p.replies || []).forEach(function (r) { who[r.author] = 1; });
+  });
+  var n = Object.keys(who).length;
+  document.getElementById('streamNote').innerHTML = list.length
+    ? '这个空间里记了 <b>' + list.length + '</b> 条' +
+      (n ? '，有 <b>' + n + '</b> 位伙伴留过话' : '，还没有人留话')
+    : '';
+
+  if (!list.length) {
+    box.innerHTML = '<div class="empty">' +
+      '<div style="font-size:19px">空间里还没有记录</div>' +
+      '<div>等谁发第一条</div></div>';
+    return;
+  }
+
+  box.innerHTML = list.map(function (p) {
+    var mine = mySessionIds.indexOf(p.id) >= 0;
+    var noText = !p.text;
+    var rs = p.replies || [];
+    var shown = rs.slice(-2);
+
+    var echoes = shown.length
+      ? '<div class="echoes">' + shown.map(function (r) {
+          return '<div class="echo"><span class="who">' + esc(r.author) + '</span> ' +
+                 esc(r.text) + '</div>';
+        }).join('') +
+        (rs.length > 2 ? '<div style="font-size:12.5px;color:#a49a89">还有 ' +
+          (rs.length - 2) + ' 句</div>' : '') + '</div>'
+      : '';
+
+    return '<div class="card' + (noText ? ' no-text' : '') + '">' +
+      (mine ? '<button class="del" onclick="dropPost(\'' + p.id + '\')">×</button>' : '') +
+      '<div class="img">' + (p.images && p.images[0]
+        ? '<img src="' + p.images[0] + '">' : '') + '</div>' +
+      '<div class="msg">' +
+        (noText ? '' : '<div class="t">' + esc(p.text) + '</div>') +
+        echoes +
+        '<div class="meta"><span>' + esc(p.signLabel || '未署名') + '</span>' +
+        '<span>' + whenStr(p.time) + '</span></div>' +
+        '<button class="reply-open" onclick="openReply(\'' + p.id + '\')">回一句</button>' +
+        '<div class="reply-box" id="reply-' + p.id + '">' +
+          '<input id="replyInput-' + p.id + '" placeholder="回一句……" ' +
+          'onkeydown="if(event.key===\'Enter\')sendReply(\'' + p.id + '\')">' +
+          '<button onclick="sendReply(\'' + p.id + '\')">发</button>' +
+        '</div>' +
+      '</div></div>';
+  }).join('');
+
+  box.scrollLeft = sc;
+}
+
+function openReply(id) {
+  var box = document.getElementById('reply-' + id);
+  if (!box) return;
+  box.classList.add('on');
+  var btn = box.parentNode.querySelector('.reply-open');
+  if (btn) btn.style.display = 'none';
+  var i = document.getElementById('replyInput-' + id);
+  if (i) i.focus();
+}
+
+function sendReply(id) {
+  var inp = document.getElementById('replyInput-' + id);
+  if (!inp) return;
+  var t = (inp.value || '').trim();
+  if (!t) { inp.focus(); return; }
+
+  var list = loadPosts();
+  var p = null;
+  for (var i = 0; i < list.length; i++) {
+    if (String(list[i].id) === String(id)) p = list[i];
+  }
+  if (!p) return;
+
+  var r = {
+    id: 'local-' + Date.now(),
+    author: me || '空间里的人',
+    text: t.slice(0, 60),
+    time: new Date().toISOString(),
+    from: 'inside'
+  };
+  p.replies = p.replies || [];
+  p.replies.push(r);
+  savePosts(list);
+  renderStream();
+
+  // 这条要是还在本地（没上云），回应也就留在本地——别让半个东西上路
+  if (cloudOn && window.MTSpace && isCloudId(id)) {
+    window.MTSpace.reply(Number(id), r.author, r.text, false).then(function (saved) {
+      if (saved) r.id = saved.id;
+    });
+  }
+}
+
+function dropPost(id) {
+  if (!confirm('把这条撤下来？撤了就不在空间里了。')) return;
+  var list = loadPosts().filter(function (p) { return String(p.id) !== String(id); });
+  savePosts(list);
+  renderStream();
+
+  // 云端不真删，只打标记：删掉就查不出是谁撤的了
+  if (cloudOn && window.MTSpace && isCloudId(id)) {
+    window.MTSpace.hide(Number(id));
+  }
+}
+
+/* 云端 id 是数字，本地临时 id 带 local- 前缀，别混 */
+function isCloudId(id) {
+  return /^\d+$/.test(String(id));
+}
+
+/* ---------- 小工具 ---------- */
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+function avatarChar(name) {
+  var n = String(name || '');
+  if (!n) return '?';
+  // 「小美」「阿哲」取末字更好认；「王老师」取首字
+  if (n.indexOf('老师') >= 0 || n.indexOf('先生') >= 0 || n.indexOf('妈妈') >= 0) return n.charAt(0);
+  return n.charAt(n.length - 1);
+}
+function avatarColor(name) {
+  var c = ['#c8a882', '#a8b58f', '#b9a3a0', '#9aa9b5', '#c0a1a8', '#a3b8ae'];
+  var h = 0;
+  for (var i = 0; i < String(name).length; i++) h = ((h << 5) - h) + String(name).charCodeAt(i);
+  return c[Math.abs(h) % c.length];
+}
+function whenStr(iso) {
+  var d = new Date(iso), n = new Date();
+  var sameDay = d.toDateString() === n.toDateString();
+  var pad = function (x) { return x < 10 ? '0' + x : '' + x; };
+  var hm = pad(d.getHours()) + ':' + pad(d.getMinutes());
+  if (sameDay) return '今天 ' + hm;
+  return (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + hm;
+}
+
+/* ---------- 云端 ---------- */
+/* 启动时试一次。连不上就安静地用本地，不弹任何提示——
+   网络好坏不该变成孩子面前的一道错误框。 */
+function bootSync() {
+  if (!window.MTSpace) { cloudOn = false; return; }
+  window.MTSpace.list(30).then(function (rows) {
+    cloudOn = true;
+    cloudPosts = rows;
+    updateStat();
+    if (!document.getElementById('stream').classList.contains('hidden')) refreshStream();
+  }).catch(function () {
+    cloudOn = false;
+    cloudPosts = null;
+  });
+}
+
+/* 打开「空间里的事」时再拉一次，让刚发的别人也能看到 */
+function refreshStream() {
+  if (!cloudOn || !window.MTSpace) return;
+  // 有人正在写回应就先别动 DOM，会把他打的字冲掉
+  if (document.querySelector('.reply-box.on')) return;
+  window.MTSpace.list(30).then(function (rows) {
+    cloudPosts = rows;
+    renderStream();
+  }).catch(function () {});
+}
+
+/* ---------- 启动 ---------- */
+renderPeople();
+renderShots();
+bootSync();
+</script>
+</body>
+</html>
