@@ -375,8 +375,11 @@
    ========================================================= */
 
 var SPACE_KEY  = 'mt_space_posts_v1';
-var PEOPLE_KEY = 'mt_space_people_v1';
-var PPL_READY  = 'mt_space_people_ready_v1';   // 名单是否被人工改过
+var PEOPLE_KEY = 'mt_space_people_v2';
+var PEOPLE_OLD = 'mt_space_people_v1';    // 老版本：里面混着示例名字
+var PEOPLE_MOVED = 'mt_space_people_moved_v1';   // 老名单已经搬过一次了
+/* 早期为了演示塞进名单的三个假名字。新版本不再产生，读到也一律剔掉。 */
+var SEED_NAMES = ['小美', '阿哲', '王老师'];
 var CUR_KEY    = 'mt_space_current_v1';   // 这台 pad 设在哪个空间
 var CUR_LOG    = 'mt_space_log_v1';       // 什么时候被换过，误改了能看出来
 
@@ -420,23 +423,34 @@ var mySessionIds = [];   // 本机本次打开里发的，允许自己撤
 function loadPeople() {
   var p = null;
   try { p = JSON.parse(localStorage.getItem(PEOPLE_KEY)); } catch (e) {}
+  if (p && p.length) return p;
 
-  if (!p || !p.length) {
-    // 只有从来没设置过的时候才给示例名单。
-    // 一旦有人动过名单，删光了就是删光了——不能再自作主张塞三个人回来。
-    var touched = false;
-    try { touched = !!localStorage.getItem(PPL_READY); } catch (e) {}
-    if (touched) return [];
-    p = [{ n: '小美' }, { n: '阿哲' }, { n: '王老师' }];
-    try { localStorage.setItem(PEOPLE_KEY, JSON.stringify(p)); } catch (e) {}
+  // 老名单只搬一次。搬过之后哪怕删空了，也不能再回头读老的，
+  // 否则删掉的人下次打开又冒出来。
+  var moved = false;
+  try { moved = !!localStorage.getItem(PEOPLE_MOVED); } catch (e) {}
+  if (moved) return [];
+
+  // 第一次读新名单：把老名单接过来，但把当年塞进去的示例名字剔掉。
+  // 真人名字原样保留，不用重新录一遍。
+  var old = null;
+  try { old = JSON.parse(localStorage.getItem(PEOPLE_OLD)); } catch (e) {}
+  var kept = [];
+  if (old && old.length) {
+    kept = old.filter(function (x) {
+      return x && x.n && SEED_NAMES.indexOf(x.n) < 0;
+    });
   }
-  return p;
+  try {
+    localStorage.setItem(PEOPLE_KEY, JSON.stringify(kept));
+    localStorage.setItem(PEOPLE_MOVED, '1');
+  } catch (e) {}
+  return kept;
 }
 
 function savePeople(list) {
   try {
     localStorage.setItem(PEOPLE_KEY, JSON.stringify(list));
-    localStorage.setItem(PPL_READY, '1');
   } catch (e) {}
 }
 
@@ -1037,7 +1051,7 @@ function esc(s) {
 function avatarChar(name) {
   var n = String(name || '');
   if (!n) return '?';
-  // 「小美」「阿哲」取末字更好认；「王老师」取首字
+  // 带「老师」「先生」「妈妈」的取首字，其余取末字，更好认
   if (n.indexOf('老师') >= 0 || n.indexOf('先生') >= 0 || n.indexOf('妈妈') >= 0) return n.charAt(0);
   return n.charAt(n.length - 1);
 }
