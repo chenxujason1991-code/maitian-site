@@ -35,6 +35,32 @@
     font-family:inherit;font-size:14px;color:#a49a89;cursor:pointer;
     text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:1px}
   .space-jump:active{color:var(--brown)}
+  .who-links{margin-top:38px;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .who-links .space-jump{margin-top:0}
+  /* 名单管理 */
+  .ppl-list{display:flex;flex-direction:column;gap:8px;max-height:44vh;overflow-y:auto}
+  .ppl-row{display:flex;align-items:center;gap:12px;padding:9px 11px;
+    border-radius:10px;background:#faf8f4}
+  .ppl-row .av{width:38px;height:38px;border-radius:50%;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:16px;font-weight:500}
+  .ppl-row .nm{flex:1;font-size:16.5px;color:var(--ink)}
+  .ppl-row .del{width:36px;height:36px;border:none;background:none;flex:none;
+    font-size:20px;line-height:1;color:#bdb2a0;cursor:pointer}
+  .ppl-row .del:active{color:#a8574f}
+  .ppl-empty{padding:20px 6px;text-align:center;font-size:14px;
+    line-height:1.8;color:#a49a89}
+  .ppl-add{display:flex;gap:8px;margin-top:14px}
+  .ppl-add input{flex:1;min-width:0;padding:12px 14px;border:1.5px solid #eae4d9;
+    border-radius:10px;font-family:inherit;font-size:16px;color:var(--ink)}
+  .ppl-add input:focus{outline:none;border-color:var(--leaf)}
+  .ppl-add button{padding:0 20px;border:none;border-radius:10px;background:var(--leaf);
+    color:#fff;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;flex:none}
+  .ppl-tip{margin-top:12px;font-size:12.5px;line-height:1.75;color:#a49a89}
+  .people-empty{text-align:center;font-size:15px;line-height:2;color:#a49a89}
+  .people-empty button{margin-top:12px;padding:12px 22px;border:1.5px solid var(--leaf);
+    border-radius:10px;background:rgba(91,140,90,.06);color:#3f6b3e;
+    font-family:inherit;font-size:15px;cursor:pointer}
   .sheet{position:fixed;inset:0;z-index:60;background:rgba(60,48,36,.34);
     display:flex;align-items:center;justify-content:center;padding:24px}
   .sheet.hidden{display:none}
@@ -221,9 +247,26 @@
     <div class="who-place" id="whoPlace" data-page-node-id="WpLq3nVc8RtYbH2sKxMd1e"></div>
     <div class="who-sub" data-page-node-id="NJcFlz6tFSwoloRgXVezaa">点一下自己的名字，不用登录</div>
     <div class="people" id="peopleList" data-page-node-id="SPeAONnMQxbBuf4VrCIZ2u"></div>
-    <button class="space-jump" id="spaceJump" onclick="openSpacePick()" data-page-node-id="Nc8Vb4mQt2RzXwYhEfLp7a">不是这里？换一个空间</button>
+    <div class="who-links">
+      <button class="space-jump" id="spaceJump" onclick="openSpacePick()" data-page-node-id="Nc8Vb4mQt2RzXwYhEfLp7a">这台 pad 固定在这里 · 更换</button>
+    </div>
   </div>
 </section>
+
+<!-- ================= 名单管理 ================= -->
+<div class="sheet hidden" id="peopleEdit" onclick="closePeople()">
+  <div class="sheet-box" onclick="event.stopPropagation()">
+    <div class="sheet-title">这台 pad 上有谁？</div>
+    <div class="ppl-list" id="pplList"></div>
+    <div class="ppl-add">
+      <input id="pplInput" maxlength="12" placeholder="加一个名字"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();addPerson();}">
+      <button onclick="addPerson()">加上</button>
+    </div>
+    <div class="ppl-tip">写孩子平时被叫的名字就行，不用写姓。名单只存在这台 pad 上，不会出现在网站。</div>
+    <button class="sheet-cancel" onclick="closePeople()">完成</button>
+  </div>
+</div>
 
 <!-- ================= 选空间 ================= -->
 <div class="sheet hidden" id="spacePick" onclick="closeSpacePick()" data-page-node-id="Kd5Hs9jLm3TqWvBxNcEr2y">
@@ -333,6 +376,7 @@
 
 var SPACE_KEY  = 'mt_space_posts_v1';
 var PEOPLE_KEY = 'mt_space_people_v1';
+var PPL_READY  = 'mt_space_people_ready_v1';   // 名单是否被人工改过
 var CUR_KEY    = 'mt_space_current_v1';   // 这台 pad 设在哪个空间
 var CUR_LOG    = 'mt_space_log_v1';       // 什么时候被换过，误改了能看出来
 
@@ -376,11 +420,24 @@ var mySessionIds = [];   // 本机本次打开里发的，允许自己撤
 function loadPeople() {
   var p = null;
   try { p = JSON.parse(localStorage.getItem(PEOPLE_KEY)); } catch (e) {}
+
   if (!p || !p.length) {
+    // 只有从来没设置过的时候才给示例名单。
+    // 一旦有人动过名单，删光了就是删光了——不能再自作主张塞三个人回来。
+    var touched = false;
+    try { touched = !!localStorage.getItem(PPL_READY); } catch (e) {}
+    if (touched) return [];
     p = [{ n: '小美' }, { n: '阿哲' }, { n: '王老师' }];
-    localStorage.setItem(PEOPLE_KEY, JSON.stringify(p));
+    try { localStorage.setItem(PEOPLE_KEY, JSON.stringify(p)); } catch (e) {}
   }
   return p;
+}
+
+function savePeople(list) {
+  try {
+    localStorage.setItem(PEOPLE_KEY, JSON.stringify(list));
+    localStorage.setItem(PPL_READY, '1');
+  } catch (e) {}
 }
 
 /* ---------- 空间 ---------- */
@@ -517,24 +574,90 @@ function postsHere() {
 function renderPeople() {
   var list = loadPeople();
   var box = document.getElementById('peopleList');
+
+  if (!list.length) {
+    box.innerHTML = '<div class="people-empty">这台 pad 上还没有人。<br>' +
+      '<button onclick="openPeople()">加上第一个人</button></div>';
+    return;
+  }
+
   box.innerHTML = list.map(function (p, i) {
     return '<div class="person" onclick="choosePerson(' + i + ')">' +
       '<div class="av c' + (i % 6) + '">' + esc(avatarChar(p.n)) + '</div>' +
       '<div class="nm">' + esc(p.n) + '</div></div>';
   }).join('') +
-  '<div class="person add" onclick="addPerson()">' +
-  '<div class="av">+</div><div class="nm">加一个人</div></div>';
+  '<div class="person add" onclick="openPeople()">' +
+  '<div class="av">+</div><div class="nm">改名单</div></div>';
+}
+
+/* ---------- 名单管理 ---------- */
+function openPeople() {
+  renderPeopleEdit();
+  document.getElementById('peopleEdit').classList.remove('hidden');
+  var inp = document.getElementById('pplInput');
+  if (inp) inp.placeholder = '加一个名字';
+}
+
+function closePeople() {
+  document.getElementById('peopleEdit').classList.add('hidden');
+  document.getElementById('pplInput').value = '';
+  renderPeople();
+  // 正在用的人要是被删掉了，退回选人屏，别让它停在半空
+  if (me) {
+    var still = loadPeople().some(function (p) { return p.n === me; });
+    if (!still) switchPerson();
+  }
+}
+
+function renderPeopleEdit() {
+  var list = loadPeople();
+  var box = document.getElementById('pplList');
+
+  if (!list.length) {
+    box.innerHTML = '<div class="ppl-empty">还没有人。<br>在下面加第一个。</div>';
+    return;
+  }
+
+  box.innerHTML = list.map(function (p, i) {
+    return '<div class="ppl-row">' +
+      '<div class="av" style="background:' + avatarColor(p.n) + '">' +
+        esc(avatarChar(p.n)) + '</div>' +
+      '<div class="nm">' + esc(p.n) + '</div>' +
+      '<button class="del" onclick="removePerson(' + i + ')" title="去掉">×</button>' +
+    '</div>';
+  }).join('');
 }
 
 function addPerson() {
-  var n = prompt('新来的人叫什么？（写小名就行，不用写姓）');
-  if (!n) return;
-  n = n.trim().slice(0, 8);
-  if (!n) return;
+  var inp = document.getElementById('pplInput');
+  // 中文名字不留空格：「小 美」和「小美」不该被当成两个人
+  var n = (inp.value || '').replace(/\s+/g, '').slice(0, 12);
+  if (!n) { inp.focus(); return; }
+
   var list = loadPeople();
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].n === n) {
+      inp.value = '';
+      inp.placeholder = '已经有「' + n + '」了';
+      return;
+    }
+  }
   list.push({ n: n });
-  localStorage.setItem(PEOPLE_KEY, JSON.stringify(list));
-  renderPeople();
+  savePeople(list);
+  inp.value = '';
+  inp.placeholder = '加一个名字';
+  renderPeopleEdit();
+  inp.focus();
+}
+
+function removePerson(i) {
+  var list = loadPeople();
+  if (!list[i]) return;
+  var n = list[i].n;
+  if (!confirm('把「' + n + '」从这台 pad 的名单里去掉？\n\n已经发过的内容不会受影响。')) return;
+  list.splice(i, 1);
+  savePeople(list);
+  renderPeopleEdit();
 }
 
 function choosePerson(i) {
