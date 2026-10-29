@@ -48,8 +48,19 @@
   .space-item small{display:block;font-size:12.5px;color:#a49a89;margin-top:4px}
   .space-item.on{border-color:var(--leaf);background:rgba(91,140,90,.07);color:#3f6b3e}
   .space-item.on small{color:#6e8a6d}
+  .space-item:active{background:#f7f4ee}
+  .space-item.on:active{background:rgba(91,140,90,.12)}
   .sheet-cancel{margin-top:16px;width:100%;padding:13px;border:none;background:none;
     font-family:inherit;font-size:15px;color:#a49a89;cursor:pointer}
+  .pick-warn{display:none;margin-top:14px;padding:11px 13px;border-radius:9px;
+    background:rgba(196,148,80,.1);border-left:3px solid #c49450;
+    font-size:13px;line-height:1.75;color:#7a6040}
+  .pick-warn.on{display:block}
+  .pick-warn b{color:#5f4a2e;font-weight:600}
+  .pick-confirm{margin-top:14px;width:100%;padding:15px;border:none;border-radius:12px;
+    background:var(--leaf);color:#fff;font-family:inherit;font-size:16.5px;font-weight:600;
+    cursor:pointer;transition:background .16s}
+  .pick-confirm:active{background:#4a7a49}
   .who-wrap .who-sub{margin-top:12px;font-size:17px;color:var(--ink-soft)}
   .people{display:flex;flex-wrap:wrap;gap:26px;justify-content:center;margin-top:52px}
   .person{display:flex;flex-direction:column;align-items:center;gap:12px;width:118px}
@@ -217,9 +228,11 @@
 <!-- ================= 选空间 ================= -->
 <div class="sheet hidden" id="spacePick" onclick="closeSpacePick()" data-page-node-id="Kd5Hs9jLm3TqWvBxNcEr2y">
   <div class="sheet-box" onclick="event.stopPropagation()" data-page-node-id="Pf7Yt2VrK9LmNqXcBwHs4z">
-    <div class="sheet-title" data-page-node-id="Rj3Lm8QvT5WpXsNcKyHb6d">现在在哪个空间？</div>
+    <div class="sheet-title" id="pickTitle" data-page-node-id="Rj3Lm8QvT5WpXsNcKyHb6d">现在在哪个空间？</div>
     <div class="space-list" id="spaceList" data-page-node-id="Gh6Nc2WqL8RtVxKpBsYm9j"></div>
-    <button class="sheet-cancel" onclick="closeSpacePick()" data-page-node-id="Tv4Kp7LnQ9RmXsWcBhYf3a">取消</button>
+    <div class="pick-warn" id="pickWarn"></div>
+    <button class="pick-confirm hidden" id="pickConfirm" onclick="confirmSpace()">确认</button>
+    <button class="sheet-cancel" id="pickCancel" onclick="closeSpacePick()" data-page-node-id="Tv4Kp7LnQ9RmXsWcBhYf3a">取消</button>
   </div>
 </div>
 
@@ -320,21 +333,29 @@
 
 var SPACE_KEY  = 'mt_space_posts_v1';
 var PEOPLE_KEY = 'mt_space_people_v1';
-var CUR_KEY    = 'mt_space_current_v1';   // 这台 pad 上次在哪个空间
+var CUR_KEY    = 'mt_space_current_v1';   // 这台 pad 设在哪个空间
+var CUR_LOG    = 'mt_space_log_v1';       // 什么时候被换过，误改了能看出来
 
 /* 空间清单跟 sync.js 共用一份。那边加一行，这里自动就有。 */
 var SPACES = (window.MTSpace && MTSpace.SPACES) ||
              [{ key: '小田', full: '滑县大寨乡小田小学' }];
 
-/* 上次在哪个空间就还在哪个空间。pad 通常固定放在一处，
-   不该每次都逼人重选；但换地方的时候要改得动。 */
-var SPACE_NAME = (function () {
+/* 一台 pad 固定放在一个空间，所以这个值设好之后就不该再动。
+   没设过 = 新设备或换过设备，必须让人明确选一次，
+   不能默默默认成清单里的第一所——那会让另一所学校的内容悄悄记错地方，
+   而且没人会发现。 */
+function readCurSpace() {
   try {
     var v = localStorage.getItem(CUR_KEY);
     for (var i = 0; i < SPACES.length; i++) if (SPACES[i].key === v) return v;
   } catch (e) {}
-  return SPACES[0].key;
-})();
+  return null;
+}
+
+var FIRST_RUN    = readCurSpace() === null;
+var SPACE_NAME   = readCurSpace() || SPACES[0].key;
+var pickMode     = 'change';   // 'first' 首次设定 / 'change' 更换
+var pendingSpace = null;
 
 function spaceFull(key) {
   for (var i = 0; i < SPACES.length; i++) {
@@ -368,11 +389,16 @@ function loadPeople() {
 function applySpace() {
   var place = document.getElementById('whoPlace');
   if (place) {
-    place.innerHTML = esc(spaceFull(SPACE_NAME)) + ' <span>· 阅读空间</span>';
+    place.innerHTML = FIRST_RUN
+      ? '这台 pad 还没有设置空间'
+      : esc(spaceFull(SPACE_NAME)) + ' <span>· 阅读空间</span>';
   }
 
   var jump = document.getElementById('spaceJump');
-  if (jump) jump.style.display = SPACES.length > 1 ? '' : 'none';
+  if (jump) {
+    jump.style.display = (SPACES.length > 1 && !FIRST_RUN) ? '' : 'none';
+    jump.textContent = '这台 pad 固定在这里' + lastSetText() + ' · 更换';
+  }
 
   var head = document.querySelector('header .place');
   if (head) head.textContent = spaceFull(SPACE_NAME) + ' · 阅读空间';
@@ -387,24 +413,97 @@ function applySpace() {
 
 function renderSpacePick() {
   document.getElementById('spaceList').innerHTML = SPACES.map(function (s) {
-    return '<button class="space-item' + (s.key === SPACE_NAME ? ' on' : '') +
-      '" onclick="chooseSpace(\'' + s.key + '\')">' +
+    return '<button class="space-item" data-key="' + esc(s.key) + '"' +
+      ' onclick="selectSpace(\'' + s.key + '\')">' +
       esc(s.full) + '<small>' + esc(s.key) + '的读者</small></button>';
   }).join('');
 }
-function openSpacePick() {
+
+/* 点一下只是选中，不立刻生效。
+   固定在一处的 pad，误点一次不该就把整个学校换掉——
+   得再点一下「换到这里」才算。 */
+function selectSpace(key) {
+  pendingSpace = key;
+  var items = document.querySelectorAll('.space-item');
+  for (var i = 0; i < items.length; i++) {
+    items[i].classList.toggle('on', items[i].getAttribute('data-key') === key);
+  }
+  var cf = document.getElementById('pickConfirm');
+  cf.textContent = key === SPACE_NAME ? '就是这里' : '换到这里：' + spaceFull(key);
+  cf.disabled = false;
+  cf.classList.remove('hidden');
+}
+
+function openSpacePick(first) {
+  var isFirst = first === true || FIRST_RUN;
+  pickMode = isFirst ? 'first' : 'change';
+  pendingSpace = null;
+
+  document.getElementById('pickTitle').textContent =
+    isFirst ? '这台 pad 放在哪个空间？' : '换成另一个空间';
+
+  var warn = document.getElementById('pickWarn');
+  warn.innerHTML = isFirst
+    ? '一所学校一台 pad，选好就一直用这个。选错了，网站上会显示到别的学校去。' +
+      '点上面一所学校继续。'
+    : '这台 pad 现在记在 <b>' + esc(spaceFull(SPACE_NAME)) + '</b>。换掉之后，' +
+      '<b>以前发过的内容不会跟着搬</b>，只有今后发的新内容算新空间。';
+  warn.classList.add('on');
+
+  document.getElementById('pickCancel').style.display = isFirst ? 'none' : '';
+  var cf = document.getElementById('pickConfirm');
+  cf.classList.add('hidden');
+  cf.disabled = true;
+
   renderSpacePick();
   document.getElementById('spacePick').classList.remove('hidden');
 }
-function closeSpacePick() {
+
+function closeSpacePick(force) {
+  // 首次设定没选完不能关，否则会停在一个没有空间的空壳上
+  if (pickMode === 'first' && force !== true) return;
   document.getElementById('spacePick').classList.add('hidden');
+  document.getElementById('pickWarn').classList.remove('on');
+  document.getElementById('pickConfirm').classList.add('hidden');
 }
-function chooseSpace(key) {
-  SPACE_NAME = key;
-  try { localStorage.setItem(CUR_KEY, key); } catch (e) {}
-  closeSpacePick();
+
+function confirmSpace() {
+  if (!pendingSpace) return;
+
+  var from = FIRST_RUN ? '' : SPACE_NAME;
+  if (pendingSpace !== SPACE_NAME || FIRST_RUN) {
+    SPACE_NAME = pendingSpace;
+    try {
+      localStorage.setItem(CUR_KEY, SPACE_NAME);
+      logSpaceChange(from, SPACE_NAME);
+    } catch (e) {}
+  }
+
+  FIRST_RUN = false;
+  pickMode = 'change';
+  closeSpacePick(true);
   applySpace();
   if (me) { setSign(signMode); updateStat(); }
+}
+
+/* 换空间的记录。没有查看后台，但底部那行会显示「哪天设的」——
+   日期不对，就是被人动过。 */
+function logSpaceChange(from, to) {
+  try {
+    var l = JSON.parse(localStorage.getItem(CUR_LOG)) || [];
+    l.unshift({ from: from || '', to: to, t: new Date().toISOString() });
+    localStorage.setItem(CUR_LOG, JSON.stringify(l.slice(0, 20)));
+  } catch (e) {}
+}
+function lastSetText() {
+  try {
+    var l = JSON.parse(localStorage.getItem(CUR_LOG)) || [];
+    if (!l.length) return '';
+    var d = new Date(l[0].t);
+    if (isNaN(d.getTime())) return '';
+    return '（' + (d.getMonth() + 1) + '月' + d.getDate() + '日' +
+      (l[0].from ? '换过' : '设定') + '）';
+  } catch (e) { return ''; }
 }
 
 /* 只算当前空间里的。几个学校混在一起，孩子不该看到别处的记录。 */
@@ -866,6 +965,18 @@ applySpace();
 renderPeople();
 renderShots();
 bootSync();
+
+/* 没设置过空间的设备（新 pad、或者坏掉换了一台），
+   先让它明确选一次再开始用。只有一所学校时没什么可选的，直接认定。 */
+if (FIRST_RUN) {
+  if (SPACES.length > 1) {
+    openSpacePick(true);
+  } else {
+    FIRST_RUN = false;
+    try { localStorage.setItem(CUR_KEY, SPACE_NAME); } catch (e) {}
+    applySpace();
+  }
+}
 </script>
 </body>
 </html>
