@@ -22,6 +22,24 @@
   var REST = CFG.url + '/rest/v1/';
   var STORAGE = CFG.url + '/storage/v1';
 
+  /* ---------- 有哪些空间 ----------
+     加一个新学校，就在这里加一行，pad 和网站两边都会跟着变。
+     key  ：写进数据库的短名，也是署名的前缀（「小田的读者」）
+     full ：网站上显示的全名
+  ------------------------------------- */
+  var SPACES = [
+    { key: '小田',   full: '滑县大寨乡小田小学' },
+    { key: '西胡垌', full: '西胡垌小学' }
+  ];
+
+  function spaceFull(key) {
+    if (!key) return '';
+    for (var i = 0; i < SPACES.length; i++) {
+      if (SPACES[i].key === key) return SPACES[i].full;
+    }
+    return key;   // 不在清单里的（比如早期数据）原样显示，不硬套
+  }
+
   function headers(extra) {
     var h = {
       'apikey': CFG.key,
@@ -227,4 +245,6 @@
   };
 
   global.MTSpace = MTSpace;
+  MTSpace.SPACES = SPACES;
+  MTSpace.spaceFull = spaceFull;
 })(window);
