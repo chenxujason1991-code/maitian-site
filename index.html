@@ -554,6 +554,12 @@
       background: #eee7db;
     }
     .slc-body { padding: 15px 17px 17px; display: flex; flex-direction: column; flex: 1; }
+    .slc-place {
+      display: inline-block; align-self: flex-start;
+      font-size: 12px; color: #7a6548; letter-spacing: .02em;
+      background: rgba(139,115,85,.09);
+      padding: 3px 10px; border-radius: 20px; margin-bottom: 10px;
+    }
     .slc-text { font-size: 15px; line-height: 1.68; color: var(--text); }
     .slc-text.none { color: #a49a89; font-style: italic; }
     .slc-meta {
@@ -2060,6 +2066,13 @@
     return (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
   }
 
+  /* 短名转全名，清单在 maitian-space-sync.js 里，两边共用一份 */
+  function placeName(key) {
+    var v = (window.MTSpace && window.MTSpace.spaceFull)
+      ? window.MTSpace.spaceFull(key) : key;
+    return v || '阅读空间';
+  }
+
   /* 网站这边只读云端，绝不读本机缓存。
      缓存是给人看的假象：在某些电脑上会显示别人看不到的内容，
      而资助者打开时又什么都没有。宁可这里空着，也不给假信号。 */
@@ -2083,12 +2096,15 @@
       return;
     }
 
-    var who = {};
+    var who = {}, places = {};
     list.forEach(function (p) {
       (p.replies || []).forEach(function (r) { who[r.author] = 1; });
+      if (p.space) places[p.space] = 1;
     });
     var n = Object.keys(who).length;
-    count.innerHTML = '记了 <b>' + list.length + '</b> 条' +
+    var np = Object.keys(places).length;
+    count.innerHTML = (np > 1 ? '<b>' + np + '</b> 个空间 · ' : '') +
+      '记了 <b>' + list.length + '</b> 条' +
       (n ? '，有 <b>' + n + '</b> 位伙伴留过话' : '');
 
     body.innerHTML = '<div class="space-live-grid">' +
@@ -2098,6 +2114,7 @@
         return '<article class="space-live-card">' +
           (img ? '<img src="' + img + '" alt="阅读空间的记录" loading="lazy">' : '') +
           '<div class="slc-body">' +
+            '<div class="slc-place">' + esc(placeName(p.space)) + '</div>' +
             (p.text
               ? '<p class="slc-text">' + esc(p.text) + '</p>'
               : '<p class="slc-text none">只留了一张照片</p>') +
